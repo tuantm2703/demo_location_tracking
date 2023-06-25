@@ -11,17 +11,25 @@ class LocationTrackingScreen extends StatefulWidget {
 }
 
 class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
-  final currentLocation = const LatLng(34.0928, -118.3287);
   final Completer<GoogleMapController> googleMapController = Completer<GoogleMapController>();
+  final currentLocation = const LatLng(37.33500926, -122.03272188);
+  final destinationLocation = const LatLng(37.33429383, -122.06600055);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: currentLocation,
-          zoom: 14.5,
-        ),
+        initialCameraPosition: CameraPosition(target: currentLocation),
+        markers: {
+          Marker(
+            markerId: const MarkerId('Source current Location'),
+            position: currentLocation,
+          ),
+          Marker(
+            markerId: const MarkerId('Destination Location'),
+            position: destinationLocation,
+          )
+        },
       ),
     );
   }
