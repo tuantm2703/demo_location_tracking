@@ -19,11 +19,17 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   LatLng? sourceLocation, destinationLocation;
   List<LatLng> polylineCoordinates = [];
   LocationData? currentLocation;
+  Location location = Location();
 
   @override
   void initState() {
     initData();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -39,8 +45,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
               markers: {
                 Marker(
                   markerId: const MarkerId("currentLocation"),
-                  position: LatLng(
-                      currentLocation!.latitude!, currentLocation!.longitude!),
+                  position: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
                 ),
                 Marker(
                   markerId: const MarkerId('source'),
@@ -71,7 +76,10 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
     if (currentLocation != null) {
       sourceLocation = LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
     }
-    destinationLocation = const LatLng(34.101663, -118.326710);
+    Map destinationMap = ModalRoute.of(context)?.settings.arguments as Map;
+    destinationLocation = destinationMap.isEmpty
+        ? const LatLng(34.101663, -118.326710)
+        : LatLng(destinationMap['lat'], destinationMap['lng']);
     printDebug('Source: - Lat:${sourceLocation?.latitude} - Long:${sourceLocation?.longitude}');
     printDebug('Destination: - Lat:${destinationLocation?.latitude} - Long:${destinationLocation?.longitude}');
     setState(() {});
@@ -106,7 +114,6 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   }
 
   onListenChangeLocation() async {
-    Location location = Location();
     GoogleMapController googleMapController = await mapCompleter.future;
     location.onLocationChanged.listen(
       (event) {
@@ -122,6 +129,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
             ),
           ),
         );
+        printDebug('Current location: - Lat:${currentLocation?.latitude} - Long:${currentLocation?.longitude}');
         setState(() {});
       },
     );
