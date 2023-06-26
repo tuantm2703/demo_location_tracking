@@ -1,11 +1,7 @@
-import 'dart:convert';
-
-import 'package:demo_location_tracking/config/app_config.dart';
 import 'package:demo_location_tracking/config/app_route.dart';
-import 'package:demo_location_tracking/data/google_map_location_response.dart';
 import 'package:demo_location_tracking/utils/app_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 class DeliveryOrderScreen extends StatefulWidget {
   const DeliveryOrderScreen({Key? key}) : super(key: key);
@@ -69,18 +65,14 @@ class _DeliveryOrderScreenState extends State<DeliveryOrderScreen> {
       isLoading = true;
     });
     String address = 'Hollywood Boulevard, Vine St, Los Angeles, CA 90028, USA';
-    var url =
-        Uri.parse('https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=${AppConfig.googleApiKey}');
-    var response = await http.get(url);
+    List<geocoding.Location> locations = await geocoding.locationFromAddress(address);
+    if(locations.isNotEmpty){
+      geocoding.Location geoCodingLocation = locations.first;
+      responseMap = {'lat':geoCodingLocation.latitude,'lng':geoCodingLocation.longitude};
+    }
     setState(() {
       isLoading = false;
     });
-    if (response.statusCode == 200) {
-      GoogleMapLocationResponse modelResponse = GoogleMapLocationResponse.fromJson(jsonDecode(response.body));
-      double? destinationLat = (modelResponse.results ?? []).first.geometry?.location?.lat;
-      double? destinationLng = (modelResponse.results ?? []).first.geometry?.location?.lng;
-      responseMap = {'lat':destinationLat,'lng':destinationLng};
-    }
     return responseMap;
   }
 }
