@@ -29,14 +29,19 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (sourceLocation == null && destinationLocation == null)
+      body: (sourceLocation == null && destinationLocation == null && currentLocation == null)
           ? const Center(child: Text('Loading'))
           : GoogleMap(
               initialCameraPosition: CameraPosition(
-                target: sourceLocation!,
-                zoom: 13.5,
+                target: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
+                zoom: 16,
               ),
               markers: {
+                Marker(
+                  markerId: const MarkerId("currentLocation"),
+                  position: LatLng(
+                      currentLocation!.latitude!, currentLocation!.longitude!),
+                ),
                 Marker(
                   markerId: const MarkerId('source'),
                   position: sourceLocation!,
@@ -63,7 +68,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
 
   void initLocation() {
     //sourceLocation = const LatLng(37.33500926, -122.03272188);
-    if(currentLocation != null){
+    if (currentLocation != null) {
       sourceLocation = LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
     }
     destinationLocation = const LatLng(34.101663, -118.326710);
@@ -92,11 +97,33 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
     await getCurrentLocation();
     initLocation();
     await getPolyPoints();
+    onListenChangeLocation();
   }
 
   getCurrentLocation() async {
-    Location location = Location();
-    currentLocation = await location.getLocation();
+    currentLocation = await Location().getLocation();
     printDebug('First current location: - Lat:${currentLocation?.latitude} - Long:${currentLocation?.longitude}');
+  }
+
+  onListenChangeLocation() async {
+    Location location = Location();
+    GoogleMapController googleMapController = await mapCompleter.future;
+    location.onLocationChanged.listen(
+      (event) {
+        currentLocation = event;
+        googleMapController.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              zoom: 16,
+              target: LatLng(
+                event.latitude!,
+                event.longitude!,
+              ),
+            ),
+          ),
+        );
+        setState(() {});
+      },
+    );
   }
 }
