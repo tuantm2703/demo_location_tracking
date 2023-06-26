@@ -18,11 +18,11 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   final Completer<GoogleMapController> mapCompleter = Completer();
   LatLng? sourceLocation, destinationLocation;
   List<LatLng> polylineCoordinates = [];
+  LocationData? currentLocation;
 
   @override
   void initState() {
-    initLocation();
-    getPolyPoints();
+    initData();
     super.initState();
   }
 
@@ -30,7 +30,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: (sourceLocation == null && destinationLocation == null)
-          ? const Text('Loading')
+          ? const Center(child: Text('Loading'))
           : GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: sourceLocation!,
@@ -62,13 +62,17 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
   }
 
   void initLocation() {
-    sourceLocation = const LatLng(37.33500926, -122.03272188);
-    destinationLocation = const LatLng(37.33429383, -122.06600055);
+    //sourceLocation = const LatLng(37.33500926, -122.03272188);
+    if(currentLocation != null){
+      sourceLocation = LatLng(currentLocation!.latitude!, currentLocation!.longitude!);
+    }
+    destinationLocation = const LatLng(34.101663, -118.326710);
     printDebug('Source: - Lat:${sourceLocation?.latitude} - Long:${sourceLocation?.longitude}');
     printDebug('Destination: - Lat:${destinationLocation?.latitude} - Long:${destinationLocation?.longitude}');
+    setState(() {});
   }
 
-  void getPolyPoints() async {
+  getPolyPoints() async {
     PolylinePoints polylinePoints = PolylinePoints();
     if (sourceLocation != null && destinationLocation != null) {
       PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
@@ -82,5 +86,17 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
         setState(() {});
       }
     }
+  }
+
+  initData() async {
+    await getCurrentLocation();
+    initLocation();
+    await getPolyPoints();
+  }
+
+  getCurrentLocation() async {
+    Location location = Location();
+    currentLocation = await location.getLocation();
+    printDebug('First current location: - Lat:${currentLocation?.latitude} - Long:${currentLocation?.longitude}');
   }
 }
