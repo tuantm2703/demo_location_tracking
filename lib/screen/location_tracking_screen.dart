@@ -37,36 +37,40 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
     return Scaffold(
       body: (sourceLocation == null && destinationLocation == null && currentLocation == null)
           ? const Center(child: Text('Loading'))
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
-                zoom: 16,
+          : SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 0.8 * MediaQuery.of(context).size.height,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
+                  zoom: 16,
+                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId("currentLocation"),
+                    position: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
+                  ),
+                  Marker(
+                    markerId: const MarkerId('source'),
+                    position: sourceLocation!,
+                  ),
+                  Marker(
+                    markerId: const MarkerId('destination'),
+                    position: destinationLocation!,
+                  ),
+                },
+                onMapCreated: (mapController) {
+                  mapCompleter.complete(mapController);
+                },
+                polylines: {
+                  Polyline(
+                    polylineId: const PolylineId('route'),
+                    points: polylineCoordinates,
+                    color: Colors.blue,
+                    width: 4,
+                  ),
+                },
               ),
-              markers: {
-                Marker(
-                  markerId: const MarkerId("currentLocation"),
-                  position: LatLng(currentLocation!.latitude!, currentLocation!.longitude!),
-                ),
-                Marker(
-                  markerId: const MarkerId('source'),
-                  position: sourceLocation!,
-                ),
-                Marker(
-                  markerId: const MarkerId('destination'),
-                  position: destinationLocation!,
-                ),
-              },
-              onMapCreated: (mapController) {
-                mapCompleter.complete(mapController);
-              },
-              polylines: {
-                Polyline(
-                  polylineId: const PolylineId('route'),
-                  points: polylineCoordinates,
-                  color: Colors.blue,
-                  width: 4,
-                ),
-              },
             ),
     );
   }
@@ -129,6 +133,7 @@ class _LocationTrackingScreenState extends State<LocationTrackingScreen> {
             ),
           ),
         );
+        printDebug('Current speed: ${event.speed}');
         printDebug('Current location: - Lat:${currentLocation?.latitude} - Long:${currentLocation?.longitude}');
         setState(() {});
       },
